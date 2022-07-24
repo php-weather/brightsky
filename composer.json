@@ -4,6 +4,7 @@
   "description": "Brightsky provider",
   "homepage": "https://github.com/php-weather",
   "license": "MIT",
+  "keywords": ["weather", "bright sky"],
   "authors": [
     {
       "name": "Dominik Schwind",
