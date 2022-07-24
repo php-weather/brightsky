@@ -1,0 +1,65 @@
+{
+  "weather": {
+    "source_id": 11708,
+    "timestamp": "2022-07-24T15:30:00+00:00",
+    "cloud_cover": 50,
+    "condition": "dry",
+    "dew_point": 13.85,
+    "precipitation_10": 0.0,
+    "precipitation_30": 0.0,
+    "precipitation_60": 0.0,
+    "pressure_msl": 1014.5,
+    "relative_humidity": 33,
+    "visibility": 51515,
+    "wind_direction_10": 10,
+    "wind_direction_30": 17,
+    "wind_direction_60": 18,
+    "wind_speed_10": 6.1,
+    "wind_speed_30": 6.5,
+    "wind_speed_60": 6.5,
+    "wind_gust_direction_10": 30,
+    "wind_gust_direction_30": 30,
+    "wind_gust_direction_60": 360,
+    "wind_gust_speed_10": 10.1,
+    "wind_gust_speed_30": 11.5,
+    "wind_gust_speed_60": 12.6,
+    "sunshine_30": 26.0,
+    "sunshine_60": 36.0,
+    "temperature": 32.1,
+    "fallback_source_ids": {
+      "dew_point": 11775,
+      "pressure_msl": 11775,
+      "relative_humidity": 11775,
+      "temperature": 11775
+    },
+    "icon": "partly-cloudy-day"
+  },
+  "sources": [
+    {
+      "id": 11708,
+      "dwd_station_id": "01346",
+      "observation_type": "synop",
+      "lat": 47.8749,
+      "lon": 8.00382,
+      "height": 1489.6,
+      "station_name": "Feldberg/Schwarzwald",
+      "wmo_station_id": "10908",
+      "first_record": "2022-07-23T09:30:00+00:00",
+      "last_record": "2022-07-24T15:30:00+00:00",
+      "distance": 117.0
+    },
+    {
+      "id": 11775,
+      "dwd_station_id": "01443",
+      "observation_type": "synop",
+      "lat": 48.0232,
+      "lon": 7.83429,
+      "height": 236.5,
+      "station_name": "Freiburg",
+      "wmo_station_id": "10803",
+      "first_record": "2022-07-23T09:30:00+00:00",
+      "last_record": "2022-07-24T15:30:00+00:00",
+      "distance": 20905.0
+    }
+  ]
+}
