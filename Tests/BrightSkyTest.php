@@ -34,7 +34,7 @@ class BrightSkyTest extends TestCase
         $latitude = 47.873;
         $longitude = 8.004;
         $testQuery = WeatherQuery::create($latitude, $longitude);
-        $testString = 'https://api.brightsky.dev/current_weather?lat=47.8739259&lon=8.0043961&units=dwd';
+        $testString = 'https://api.brightsky.dev/current_weather?lat=47.873&lon=8.004&units=dwd';
 
         $request = $this->createMock(RequestInterface::class);
         $this->requestFactory->expects(self::once())->method('createRequest')->with('GET', $testString)->willReturn($request);
