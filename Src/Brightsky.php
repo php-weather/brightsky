@@ -44,7 +44,7 @@ class Brightsky extends AbstractHttpProvider
     /**
      * @throws ServerException
      */
-    protected function mapRawData(float $latitude, float $longitude, array $rawData, ?string $type = null): Weather|WeatherCollection
+    protected function mapRawData(float $latitude, float $longitude, array $rawData, ?string $type = null, ?string $units = null): Weather|WeatherCollection
     {
         if (!array_key_exists('weather', $rawData)) {
             throw new ServerException();
