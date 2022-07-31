@@ -7,7 +7,7 @@ use Http\Client\HttpClient;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PhpWeather\Common\WeatherQuery;
-use PhpWeather\Exception\Exception;
+use PhpWeather\Exception;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -31,10 +31,10 @@ class BrightSkyTest extends TestCase
      */
     public function testCurrentWeather(): void
     {
-        $latitude = 47.873;
-        $longitude = 8.004;
+        $latitude = 47.8739259;
+        $longitude = 8.0043961;
         $testQuery = WeatherQuery::create($latitude, $longitude);
-        $testString = 'https://api.brightsky.dev/current_weather?lat=47.873&lon=8.004&units=dwd';
+        $testString = 'https://api.brightsky.dev/current_weather?lat=47.8739259&lon=8.0043961&units=dwd';
 
         $request = $this->createMock(RequestInterface::class);
         $this->requestFactory->expects(self::once())->method('createRequest')->with('GET', $testString)->willReturn($request);

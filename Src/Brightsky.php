@@ -8,6 +8,9 @@ use DateTime;
 use DateTimeZone;
 use JetBrains\PhpStorm\ArrayShape;
 use PhpWeather\Common\Source;
+use PhpWeather\Common\UnitConverter;
+use PhpWeather\Constants\Type;
+use PhpWeather\Constants\Unit;
 use PhpWeather\Exception\ServerException;
 use PhpWeather\HttpProvider\AbstractHttpProvider;
 use PhpWeather\Weather;
@@ -50,16 +53,16 @@ class Brightsky extends AbstractHttpProvider
             throw new ServerException();
         }
 
-        if ($type === Weather::CURRENT) {
+        if ($type === Type::CURRENT) {
             /** @var array<string, mixed> $weatherRawData */
             $weatherRawData = $rawData['weather'];
 
-            return $this->mapItemRawdata($latitude, $longitude, $weatherRawData, $type);
+            return $this->mapItemRawdata($latitude, $longitude, $weatherRawData, $type, $units);
         }
 
         $weatherCollection = new \PhpWeather\Common\WeatherCollection();
         foreach ($rawData['weather'] as $weatherRawData) {
-            $weatherCollection->add($this->mapItemRawdata($latitude, $longitude, $weatherRawData));
+            $weatherCollection->add($this->mapItemRawdata($latitude, $longitude, $weatherRawData, null, $units));
         }
 
         return $weatherCollection;
@@ -100,15 +103,6 @@ class Brightsky extends AbstractHttpProvider
     protected function getHistoricalTimeLineWeatherQueryString(WeatherQuery $query): string
     {
         return $this->getForecastWeatherQueryString($query);
-    }
-
-    protected function mapUnits(string $units): string
-    {
-        if ($units === WeatherQuery::IMPERIAL) {
-            return 'si';
-        }
-
-        return 'dwd';
     }
 
     /**
@@ -155,10 +149,15 @@ class Brightsky extends AbstractHttpProvider
      * @param  float  $longitude
      * @param  array<string, mixed>  $weatherRawData
      * @param  string|null  $type
+     * @param  string|null  $units
      * @return Weather
      */
-    private function mapItemRawdata(float $latitude, float $longitude, array $weatherRawData, ?string $type = null): Weather
+    private function mapItemRawdata(float $latitude, float $longitude, array $weatherRawData, ?string $type = null, ?string $units = null): Weather
     {
+        if($units === null) {
+            $units = Unit::METRIC;
+        }
+
         $weatherData = (new \PhpWeather\Common\Weather())
             ->setLatitude($latitude)
             ->setLongitude($longitude);
@@ -174,19 +173,20 @@ class Brightsky extends AbstractHttpProvider
         if ($weatherData->getType() === null) {
             $now = new DateTime();
             if ($weatherData->getUtcDateTime() > $now) {
-                $weatherData->setType(Weather::FORECAST);
+                $weatherData->setType(Type::FORECAST);
             } else {
-                $weatherData->setType(Weather::HISTORICAL);
+                $weatherData->setType(Type::HISTORICAL);
             }
         }
 
-        $weatherData->setTemperature($weatherRawData['temperature'])
-            ->setHumidity($weatherRawData['relative_humidity'] / 100)
-            ->setPressure($weatherRawData['pressure_msl']);
+        $weatherData->setTemperature(UnitConverter::mapTemperature($weatherRawData['temperature'], Unit::TEMPERATURE_CELSIUS, $units));
+        $weatherData->setDewPoint(UnitConverter::mapTemperature($weatherRawData['dew_point'], Unit::TEMPERATURE_CELSIUS, $units));
+        $weatherData->setHumidity($weatherRawData['relative_humidity']);
+        $weatherData->setPressure(UnitConverter::mapPressure($weatherRawData['pressure_msl'], Unit::PRESSURE_HPA, $units));
         if (array_key_exists('wind_speed', $weatherRawData)) {
-            $weatherData->setWindSpeed($weatherRawData['wind_speed']);
+            $weatherData->setWindSpeed(UnitConverter::mapSpeed($weatherRawData['wind_speed'], Unit::SPEED_KMH, $units));
         } elseif (array_key_exists('wind_speed_10', $weatherRawData)) {
-            $weatherData->setWindSpeed($weatherRawData['wind_speed_10']);
+            $weatherData->setWindSpeed(UnitConverter::mapSpeed($weatherRawData['wind_speed_10'], Unit::SPEED_KMH, $units));
         }
         if (array_key_exists('wind_direction', $weatherRawData)) {
             $weatherData->setWindDirection($weatherRawData['wind_direction']);
@@ -194,9 +194,9 @@ class Brightsky extends AbstractHttpProvider
             $weatherData->setWindDirection($weatherRawData['wind_direction_10']);
         }
         if (array_key_exists('precipitation', $weatherRawData)) {
-            $weatherData->setPrecipitation($weatherRawData['precipitation']);
+            $weatherData->setPrecipitation(UnitConverter::mapPrecipitation($weatherRawData['precipitation'], Unit::PRECIPITATION_MM, $units));
         } elseif (array_key_exists('precipitation_10', $weatherRawData)) {
-            $weatherData->setPrecipitation($weatherRawData['precipitation_10']);
+            $weatherData->setPrecipitation(UnitConverter::mapPrecipitation($weatherRawData['precipitation_10'], Unit::PRECIPITATION_MM, $units));
         }
         $weatherData->setCloudCover($weatherRawData['cloud_cover']);
 
@@ -210,12 +210,13 @@ class Brightsky extends AbstractHttpProvider
      * @param  WeatherQuery  $query
      * @return array<string, mixed>
      */
-    #[ArrayShape(['lat' => "float|null", 'lon' => "float|null", 'units' => "string"])] private function getBaseQueryArray(WeatherQuery $query): array
+    #[ArrayShape(['lat' => "float|null", 'lon' => "float|null", 'units' => "string"])]
+    private function getBaseQueryArray(WeatherQuery $query): array
     {
         return [
             'lat' => $query->getLatitude(),
             'lon' => $query->getLongitude(),
-            'units' => $this->mapUnits($query->getUnits()),
+            'units' => 'dwd',
         ];
     }
 
