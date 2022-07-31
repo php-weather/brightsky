@@ -2,7 +2,7 @@
 
 ![Packagist Version](https://img.shields.io/packagist/v/php-weather/brightsky)  
 ![GitHub Release Date](https://img.shields.io/github/release-date/php-weather/brightsky)
-![GitHub commits since tagged version](https://img.shields.io/github/commits-since/php-weather/brightsky/0.2.0)
+![GitHub commits since tagged version](https://img.shields.io/github/commits-since/php-weather/brightsky/0.3.0)
 ![GitHub last commit](https://img.shields.io/github/last-commit/php-weather/brightsky)  
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/php-weather/brightsky/PHP%20Composer)
 ![GitHub](https://img.shields.io/github/license/php-weather/brightsky)
