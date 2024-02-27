@@ -6,7 +6,6 @@ namespace PhpWeather\Provider\Brightsky;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use JetBrains\PhpStorm\ArrayShape;
 use PhpWeather\Common\Source;
 use PhpWeather\Common\UnitConverter;
 use PhpWeather\Constants\Type;
@@ -23,26 +22,6 @@ class Brightsky extends AbstractHttpProvider
      * @var Source[]|null
      */
     private ?array $sources = null;
-
-    public function getSources(): array
-    {
-        if ($this->sources === null) {
-            $this->sources = [
-                new Source(
-                    'brightsky',
-                    'Bright Sky',
-                    'https://brightsky.dev/'
-                ),
-                new Source(
-                    'dwd',
-                    'Deutscher Wetterdienst',
-                    'https://www.dwd.de/'
-                ),
-            ];
-        }
-
-        return $this->sources;
-    }
 
     /**
      * @throws ServerException
@@ -68,82 +47,6 @@ class Brightsky extends AbstractHttpProvider
         return $weatherCollection;
     }
 
-    protected function getCurrentWeatherQueryString(WeatherQuery $query): string
-    {
-        $queryArray = $this->getBaseQueryArray($query);
-
-        return sprintf('https://api.brightsky.dev/current_weather?%s', http_build_query($queryArray));
-    }
-
-    protected function getForecastWeatherQueryString(WeatherQuery $query): string
-    {
-        $queryArray = $this->getBaseQueryArray($query);
-
-        if ($query->getDateTime() !== null) {
-            $queryArray['date'] = $query->getDateTime()->format('c');
-        } else {
-            $queryArray['date'] = date('c');
-        }
-
-        return sprintf('https://api.brightsky.dev/weather?%s', http_build_query($queryArray));
-    }
-
-    protected function getHistoricalWeatherQueryString(WeatherQuery $query): string
-    {
-        $queryArray = $this->getBaseQueryArray($query);
-
-        $date = $query->getDateTime() ?? new DateTime();
-        $lastDate = DateTime::createFromInterface($date)->add(new DateInterval('PT2H'));
-        $queryArray['date'] = $date->format('c');
-        $queryArray['last_date'] = $lastDate->format('c');
-
-        return sprintf('https://api.brightsky.dev/weather?%s', http_build_query($queryArray));
-    }
-
-    protected function getHistoricalTimeLineWeatherQueryString(WeatherQuery $query): string
-    {
-        return $this->getForecastWeatherQueryString($query);
-    }
-
-    /**
-     * @param  array<string, mixed>  $weatherRawData
-     * @return int|null
-     */
-    private function mapWeatherCode(array $weatherRawData): ?int
-    {
-        $icon = $weatherRawData['icon'];
-
-        return match ($icon) {
-            'clear-day', 'clear-night' => 0,
-            'partly-cloudy-day', 'partly-cloudy-night' => 2,
-            'cloudy' => 3,
-            'fog' => 45,
-            'rain' => 63,
-            'snow' => 73,
-            'thunderstorm' => 95,
-            default => null,
-        };
-    }
-
-    /**
-     * @param  array<string, mixed>  $weatherRawData
-     * @return string|null
-     */
-    private function mapIcon(array $weatherRawData): ?string
-    {
-        $icon = $weatherRawData['icon'];
-
-        return match ($icon) {
-            'clear-day' => 'day-sunny',
-            'clear-night' => 'night-clear',
-            'partly-cloudy-day' => 'day-cloudy',
-            'partly-cloudy-night' => 'night-cloudy',
-            'cloudy', 'rain', 'fog', 'snow', 'thunderstorm', 'sleet', 'hail' => $icon,
-            'wind' => 'strong-wind',
-            default => null,
-        };
-    }
-
     /**
      * @param  float  $latitude
      * @param  float  $longitude
@@ -154,7 +57,7 @@ class Brightsky extends AbstractHttpProvider
      */
     private function mapItemRawdata(float $latitude, float $longitude, array $weatherRawData, ?string $type = null, ?string $units = null): Weather
     {
-        if($units === null) {
+        if ($units === null) {
             $units = Unit::METRIC;
         }
 
@@ -206,11 +109,76 @@ class Brightsky extends AbstractHttpProvider
         return $weatherData;
     }
 
+    public function getSources(): array
+    {
+        if ($this->sources === null) {
+            $this->sources = [
+                new Source(
+                    'brightsky',
+                    'Bright Sky',
+                    'https://brightsky.dev/'
+                ),
+                new Source(
+                    'dwd',
+                    'Deutscher Wetterdienst',
+                    'https://www.dwd.de/'
+                ),
+            ];
+        }
+
+        return $this->sources;
+    }
+
+    /**
+     * @param  array<string, mixed>  $weatherRawData
+     * @return int|null
+     */
+    private function mapWeatherCode(array $weatherRawData): ?int
+    {
+        $icon = $weatherRawData['icon'];
+
+        return match ($icon) {
+            'clear-day', 'clear-night' => 0,
+            'partly-cloudy-day', 'partly-cloudy-night' => 2,
+            'cloudy' => 3,
+            'fog' => 45,
+            'rain' => 63,
+            'snow' => 73,
+            'thunderstorm' => 95,
+            default => null,
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $weatherRawData
+     * @return string|null
+     */
+    private function mapIcon(array $weatherRawData): ?string
+    {
+        $icon = $weatherRawData['icon'];
+
+        return match ($icon) {
+            'clear-day' => 'day-sunny',
+            'clear-night' => 'night-clear',
+            'partly-cloudy-day' => 'day-cloudy',
+            'partly-cloudy-night' => 'night-cloudy',
+            'cloudy', 'rain', 'fog', 'snow', 'thunderstorm', 'sleet', 'hail' => $icon,
+            'wind' => 'strong-wind',
+            default => null,
+        };
+    }
+
+    protected function getCurrentWeatherQueryString(WeatherQuery $query): string
+    {
+        $queryArray = $this->getBaseQueryArray($query);
+
+        return sprintf('https://api.brightsky.dev/current_weather?%s', http_build_query($queryArray));
+    }
+
     /**
      * @param  WeatherQuery  $query
-     * @return array<string, mixed>
+     * @return array{'lat': float|null, 'lon': float|null, 'units': string}
      */
-    #[ArrayShape(['lat' => "float|null", 'lon' => "float|null", 'units' => "string"])]
     private function getBaseQueryArray(WeatherQuery $query): array
     {
         return [
@@ -218,6 +186,36 @@ class Brightsky extends AbstractHttpProvider
             'lon' => $query->getLongitude(),
             'units' => 'dwd',
         ];
+    }
+
+    protected function getHistoricalWeatherQueryString(WeatherQuery $query): string
+    {
+        $queryArray = $this->getBaseQueryArray($query);
+
+        $date = $query->getDateTime() ?? new DateTime();
+        $lastDate = DateTime::createFromInterface($date)->add(new DateInterval('PT2H'));
+        $queryArray['date'] = $date->format('c');
+        $queryArray['last_date'] = $lastDate->format('c');
+
+        return sprintf('https://api.brightsky.dev/weather?%s', http_build_query($queryArray));
+    }
+
+    protected function getHistoricalTimeLineWeatherQueryString(WeatherQuery $query): string
+    {
+        return $this->getForecastWeatherQueryString($query);
+    }
+
+    protected function getForecastWeatherQueryString(WeatherQuery $query): string
+    {
+        $queryArray = $this->getBaseQueryArray($query);
+
+        if ($query->getDateTime() !== null) {
+            $queryArray['date'] = $query->getDateTime()->format('c');
+        } else {
+            $queryArray['date'] = date('c');
+        }
+
+        return sprintf('https://api.brightsky.dev/weather?%s', http_build_query($queryArray));
     }
 
 }
